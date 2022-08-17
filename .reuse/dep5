@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: python-lambda-demo
+Upstream-Contact: Mike Winter <mail@mikewinter.uk>
+Source: https://github.com/MikeWinter/python-lambda-demo
+
+Files: *
+Copyright: 2022 Mike Winter <mail@mikewinter.uk>
+License: Apache-2.0
+

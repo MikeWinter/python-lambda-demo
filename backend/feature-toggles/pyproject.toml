@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "feature-toggles"
+version = "0.1.0"
+description = ""
+authors = ["Mike Winter <mail@mikewinter.uk>"]
+
+[tool.poetry.dependencies]
+python = "^3.9.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+boto3 = "^1.24.53"
+http-lib = {path = "../http-lib"}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -eu
+
+function package-lambda() {
+  local -r project="$1"
+
+  echo 1>&2
+  pushd "$project"
+    build "$project" dist/package
+    create-package
+  popd
+}
+
+function package-layer() {
+  local -r project="$1"
+
+  echo 1>&2
+  pushd "$project"
+    build "$project" dist/package/python
+    create-package
+  popd
+}
+
+function build() {
+  local -r project="$1"
+  local -r target="$2"
+
+  poetry build --format=sdist
+  poetry run pip install --no-compile --upgrade --target "$target" "dist/$project-$(poetry version --short).tar.gz"
+}
+
+function create-package() {
+  pushd dist/package
+    zip -r ../bundle.zip . -x '*.dist-info/*' 'bin/*'
+  popd
+}
+
+function main() {
+  package-layer http-lib
+  package-lambda feature-toggles
+}
+
+main "$@"
