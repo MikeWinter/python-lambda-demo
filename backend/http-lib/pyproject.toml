@@ -1,8 +1,13 @@
 [tool.poetry]
 name = "http-lib"
 version = "0.1.0"
-description = ""
+description = "Common HTTP classes"
 authors = ["Mike Winter <mail@mikewinter.uk>"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Software Development :: Libraries",
+    "Private :: Do Not Upload",
+]
 
 [tool.poetry.dependencies]
 python = "^3.9.0"

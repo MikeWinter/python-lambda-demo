@@ -1,8 +1,12 @@
 [tool.poetry]
 name = "feature-toggles"
 version = "0.1.0"
-description = ""
+description = "A Lambda for supplying toggle values"
 authors = ["Mike Winter <mail@mikewinter.uk>"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Private :: Do Not Upload",
+]
 
 [tool.poetry.dependencies]
 python = "^3.9.0"
