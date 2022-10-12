@@ -26,7 +26,7 @@ function build() {
   local -r target="$2"
 
   poetry build --format=sdist
-  poetry run pip install --no-compile --upgrade --target "$target" "dist/$project-$(poetry version --short).tar.gz"
+  poetry run pip install --no-compile --upgrade --target "$target" "dist/${project//-/_}-$(poetry version --short).tar.gz"
 }
 
 function create-package() {
