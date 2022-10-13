@@ -26,6 +26,7 @@ function build() {
   local -r target="$2"
 
   rm -rf dist
+  poetry install --sync
   poetry build --format=sdist
   poetry run pip install --no-compile --upgrade --target "$target" "dist/${project//-/_}-$(poetry version --short).tar.gz"
 }
