@@ -33,7 +33,7 @@ function build() {
 
 function create-package() {
   pushd dist/package
-    zip -r ../bundle.zip . -x '*.dist-info/*' 'bin/*'
+    zip -q -r ../bundle.zip . -x '*.dist-info/*' 'bin/*'
   popd
 }
 
