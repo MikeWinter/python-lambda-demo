@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/frontend.iml" filepath="$PROJECT_DIR$/frontend.iml" />
       <module fileurl="file://$PROJECT_DIR$/backend/feature-toggles/feature-toggles.iml" filepath="$PROJECT_DIR$/backend/feature-toggles/feature-toggles.iml" />
-      <module fileurl="file://$PROJECT_DIR$/backend/http-lib/http-lib.iml" filepath="$PROJECT_DIR$/backend/http-lib/http-lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backend/layers/http-lib/http-lib.iml" filepath="$PROJECT_DIR$/backend/layers/http-lib/http-lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/python-lambda-demo.iml" filepath="$PROJECT_DIR$/python-lambda-demo.iml" />
     </modules>
   </component>

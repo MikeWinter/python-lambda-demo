@@ -13,7 +13,7 @@ python = "^3.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"
-http-lib = {path = "../http-lib"}
+http-lib = {path = "../layers/http-lib"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

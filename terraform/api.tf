@@ -1,5 +1,5 @@
 locals {
-  http-lib-filename = "../backend/http-lib/dist/bundle.zip"
+  http-lib-filename = "../backend/layers/http-lib/dist/bundle.zip"
   toggles-filename  = "../backend/feature-toggles/dist/bundle.zip"
 }
 

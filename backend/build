@@ -15,7 +15,7 @@ function package-layer() {
   local -r project="$1"
 
   echo 1>&2
-  pushd "$project"
+  pushd "layers/$project"
     build "$project" dist/package/python
     create-package
   popd

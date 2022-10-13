@@ -66,7 +66,7 @@ boto3 = "^1.24.89"
 
 [package.source]
 type = "directory"
-url = "../http-lib"
+url = "../layers/http-lib"
 
 [[package]]
 name = "iniconfig"
@@ -203,7 +203,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9.0"
-content-hash = "6b4de57b69224290243f73a063ba9932c622a34a70c0373b4bf928bb40bf7ee1"
+content-hash = "08617a6082d2781a9667bc58c6df357aab9b2cfcc217870d9817d3294a2c996a"
 
 [metadata.files]
 attrs = [
