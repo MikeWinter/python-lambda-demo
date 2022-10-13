@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 set -eu
 
-function package-lambda() {
+function package_lambda() {
   local -r project="$1"
 
   echo 1>&2
   pushd "$project"
     build "$project" dist/package
-    create-package
+    create_package
   popd
 }
 
-function package-layer() {
+function package_layer() {
   local -r project="$1"
 
   echo 1>&2
   pushd "layers/$project"
     build "$project" dist/package/python
-    create-package
+    create_package
   popd
 }
 
@@ -33,15 +33,31 @@ function build() {
   unzip -q "dist/${project//-/_}-$(poetry version --short)-*.whl" -d "$target"
 }
 
-function create-package() {
+function create_package() {
   pushd dist/package
     zip -q -r ../bundle.zip . -x "bin/*"
   popd
 }
 
+function package_layers() {
+  find layers -name poetry.lock > tmp
+  while IFS= read -r file; do
+    package_layer "$(basename "$(dirname "$file")")"
+  done < tmp
+  rm tmp
+}
+
+function package_lambdas() {
+  find . -name poetry.lock ! -path "*/layers/*" > tmp
+  while IFS= read -r file; do
+    package_lambda "$(basename "$(dirname "$file")")"
+  done < tmp
+  rm tmp
+}
+
 function main() {
-  package-layer http-lib
-  package-lambda feature-toggles
+  package_layers
+  package_lambdas
 }
 
 main "$@"
