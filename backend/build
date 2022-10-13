@@ -27,8 +27,10 @@ function build() {
 
   rm -rf dist
   poetry install --sync
-  poetry build --format=sdist
-  poetry run pip install --no-compile --upgrade --target "$target" "dist/${project//-/_}-$(poetry version --short).tar.gz"
+  poetry build --format=wheel
+  poetry export --format=requirements.txt --output=dist/requirements.txt
+  poetry run pip install --no-compile --target "$target" --requirement dist/requirements.txt
+  unzip -q "dist/${project//-/_}-$(poetry version --short)-*.whl" -d "$target"
 }
 
 function create-package() {
