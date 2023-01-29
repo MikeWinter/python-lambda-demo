@@ -1,63 +1,142 @@
 #!/usr/bin/env bash
 set -eu
 
-function package_lambda() {
-  local -r project="$1"
+readonly white="\e[0;97m"
+readonly cyan="\e[0;96m"
+readonly red="\e[0;31m"
+readonly reset="\e[0m"
 
-  echo 1>&2
-  pushd "$project"
-    build "$project" dist/package
-    create_package
-  popd
+# This command cannot fail so there's no need to separate declaration and
+# assignment.
+# shellcheck disable=SC2155
+readonly script_path="$(dirname "$0")"
+
+readonly build_path='dist'
+readonly packaging_path="${build_path}/package"
+readonly -A target_path_by_type=(
+  [lambda]="${packaging_path}"
+  [layer]="${packaging_path}/python"
+)
+
+# Builds a list of projects of a given type.
+#
+# A new line-separated list of project paths is read from standard input. Each
+# project must be of the same type. The type is given as the first argument to
+# the function, and must be one of the keys in `target_path_by_type`.
+function build_all() {
+  local -r type="${1:?type is required}"
+  local project
+
+  while IFS= read -r path; do
+    project="$(basename "${path}")"
+
+    echo -e "${white}Bundling${reset} ${type^} ${cyan}${project}${reset}..." 1>&2
+    pushd "${path}" >/dev/null
+    {
+      clean
+      install_dependencies
+      build
+      package "${project}" "${type}"
+    }
+    popd >/dev/null
+  done </dev/stdin
 }
 
-function package_layer() {
-  local -r project="$1"
-
-  echo 1>&2
-  pushd "layers/$project"
-    build "$project" dist/package/python
-    create_package
-  popd
-}
-
+# Builds a project in wheel format.
+#
+# The project is assumed to be in the current directory.
 function build() {
-  local -r project="$1"
-  local -r target="$2"
+  poetry build --format=wheel --quiet
+} 1>&2
 
-  rm -rf dist
-  poetry install --sync
-  poetry build --format=wheel
-  poetry export --format=requirements.txt --output=dist/requirements.txt
-  poetry run pip install --no-compile --target "$target" --requirement dist/requirements.txt
-  unzip -q "dist/${project//-/_}-$(poetry version --short)-*.whl" -d "$target"
+# Deletes the artefacts of a project.
+#
+# The project is assumed to be in the current directory.
+function clean() {
+  rm -rf "${build_path:?build path must always be a relative directory}/"
+} 1>&2
+
+# Installs dependencies for a project.
+#
+# The project is assumed to be in the current directory.
+function install_dependencies() {
+  poetry lock --no-update --quiet
+  poetry install --sync --quiet
+} 1>&2
+
+# Packages the project as a deployable artefact named `bundle.zip`.
+#
+# The named project is assembled along with its dependencies into a Zip file.
+# It is assumed that the project is in the current directory. The internal
+# structure of the artefact is determined by the provided project type. The
+# type must be one of the keys in `target_path_by_type`.
+function package() {
+  local -r project="${1:?project is required}"
+  local -r type="${2:?target is required}"
+  local -r target_path="${target_path_by_type[${type}]}"
+
+  # Copy runtime dependencies to the target package directory.
+  poetry export \
+    --without dev \
+    --format=requirements.txt \
+    --output="${build_path}/requirements.txt"
+  poetry run pip install \
+    --quiet --no-compile \
+    --target "${target_path}" \
+    --requirement "${build_path}/requirements.txt"
+  # Unpack the built project wheel to the target package directory.
+  unzip -q "${build_path}/${project//-/_}-$(poetry version --short)-*.whl" \
+    -d "${target_path}"
+  # Reset the modification time for all files and directories to that of the
+  # lock file. This avoids making an artefact with the same content seem like
+  # it's been updated only because it was packaged on a different day.
+  find "${packaging_path}" -exec touch -cmr 'poetry.lock' '{}' \;
+  pushd "${packaging_path}" >/dev/null
+  {
+    # Archive code and dependencies. Unnecessary file attributes are excluded
+    # to again avoid spurious differences between builds.
+    zip -Xoqr '../bundle.zip' . -x 'bin/*'
+  }
+  popd >/dev/null
+} 1>&2
+
+# Writes a list of Lambda project paths to standard output.
+function lambda_projects() {
+  find "${script_path}" -name 'poetry.lock' \
+    -not -path '*/layers/*' \
+    -exec dirname '{}' \;
 }
 
-function create_package() {
-  pushd dist/package
-    zip -q -r ../bundle.zip . -x "bin/*"
-  popd
+# Writes a list of Layer project paths to standard output.
+function layer_projects() {
+  find "${script_path}" -name 'poetry.lock' \
+    -path '*/layers/*' \
+    -exec dirname '{}' \;
 }
 
-function package_layers() {
-  find layers -name poetry.lock > tmp
-  while IFS= read -r file; do
-    package_layer "$(basename "$(dirname "$file")")"
-  done < tmp
-  rm tmp
-}
+# Checks that the given executable is installed, returning an error if it
+# cannot be found.
+#
+# The program to found is given as the first argument. Optional installation
+# instructions can be given as the second argument.
+function installed() {
+  local -r program="${1:?program is required}"
+  local -r instructions="${2:-}"
 
-function package_lambdas() {
-  find . -name poetry.lock ! -path "*/layers/*" > tmp
-  while IFS= read -r file; do
-    package_lambda "$(basename "$(dirname "$file")")"
-  done < tmp
-  rm tmp
-}
+  if ! command -v "${program}" >/dev/null; then
+    echo -e "${red}Error:${reset} ${cyan}${program}${reset} is not installed."
+    [[ -n "${instructions}" ]] && echo -e "\n${instructions}"
+    return 254
+  fi
+} 1>&2
 
 function main() {
-  package_layers
-  package_lambdas
+  installed poetry "Try ${white}brew install poetry${reset} or visit <https://python-poetry.org/docs/#installation>."
+  installed find
+  installed zip
+
+  layer_projects | build_all layer
+  lambda_projects | build_all lambda
 }
 
 main "$@"
